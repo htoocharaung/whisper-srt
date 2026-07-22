@@ -16,13 +16,28 @@ MODEL_SIZE = os.getenv("WHISPER_MODEL", "base")
 DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
 COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
 
-print(f"Loading Whisper model '{MODEL_SIZE}' on {DEVICE} with {COMPUTE_TYPE} precision...")
-try:
-    model = WhisperModel(MODEL_SIZE, device=DEVICE, compute_type=COMPUTE_TYPE)
-    print("Model loaded successfully.")
-except Exception as e:
-    print(f"Error loading model: {e}")
-    model = None
+model = None
+model_loading = False
+
+def load_model():
+    global model, model_loading
+    if model is None and not model_loading:
+        model_loading = True
+        print(f"Loading Whisper model '{MODEL_SIZE}' on {DEVICE} with {COMPUTE_TYPE} precision...")
+        try:
+            model = WhisperModel(MODEL_SIZE, device=DEVICE, compute_type=COMPUTE_TYPE)
+            print("Model loaded successfully.")
+        except Exception as e:
+            print(f"Error loading model: {e}")
+            model = None
+        finally:
+            model_loading = False
+    return model
+
+@app.on_event("startup")
+async def startup_event():
+    # Trigger model load in background thread on startup
+    asyncio.create_task(asyncio.to_thread(load_model))
 
 def format_time(seconds: float) -> str:
     """Convert seconds to SRT time format (HH:MM:SS,mmm)"""
@@ -33,10 +48,28 @@ def format_time(seconds: float) -> str:
     millis = int((seconds_remainder - secs) * 1000)
     return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
 
+@app.get("/")
+@app.get("/whisper")
+async def root():
+    return {
+        "status": "online",
+        "message": "Whisper SRT Transcription API is running",
+        "model_loaded": model is not None,
+        "endpoints": {
+            "health": "/health",
+            "transcribe": "POST /transcribe"
+        }
+    }
+
 @app.get("/health")
 async def health_check():
+    if model_loading:
+        return {"status": "loading", "model": MODEL_SIZE, "device": DEVICE}
     if model is None:
-        raise HTTPException(status_code=503, detail="Model failed to load")
+        # Try loading if not loaded
+        load_model()
+        if model is None:
+            raise HTTPException(status_code=503, detail="Model failed to load")
     return {"status": "healthy", "model": MODEL_SIZE, "device": DEVICE}
 
 @app.post("/transcribe", response_class=PlainTextResponse)

@@ -17,6 +17,7 @@ services:
       - "8000"
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=n8n-stack_default"
       
       # Routing for HTTP
       - "traefik.http.routers.whisper.rule=PathPrefix(`/whisper`)"
