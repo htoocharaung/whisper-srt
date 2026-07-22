@@ -28,7 +28,7 @@ services:
       - "traefik.http.services.whisper.loadbalancer.server.port=9000"
       
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/docs"]
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9000/docs')"]
       interval: 30s
       timeout: 10s
       retries: 3
