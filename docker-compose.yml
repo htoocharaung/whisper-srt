@@ -1,6 +1,6 @@
 services:
   whisper:
-    image: onerahmet/whisper-asr-webservice:latest
+    image: onerahmet/openai-whisper-asr-webservice:latest
     container_name: whisper-api
     restart: unless-stopped
     # Attach to the n8n-stack_default network where Traefik resides
