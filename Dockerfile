@@ -7,14 +7,25 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app
 
-# Install system dependencies (ffmpeg is required by faster-whisper)
+# Install system dependencies & build tools (ffmpeg and dev libraries for PyAV)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    pkg-config \
+    build-essential \
+    libavformat-dev \
+    libavcodec-dev \
+    libavdevice-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libswresample-dev \
+    libavfilter-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install them
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Pre-download the default whisper model to speed up first boot
 # We run a quick python script to cache the model.
