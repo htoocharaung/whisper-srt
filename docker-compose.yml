@@ -21,6 +21,7 @@ services:
       
       # Router rule for PathPrefix /whisper across all entrypoints
       - "traefik.http.routers.whisper.rule=PathPrefix(`/whisper`)"
+      - "traefik.http.routers.whisper.service=whisper"
       - "traefik.http.routers.whisper.middlewares=whisper-strip-prefix"
       
       # Middleware definition to strip /whisper prefix before forwarding

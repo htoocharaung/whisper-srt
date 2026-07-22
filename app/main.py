@@ -48,6 +48,7 @@ def format_time(seconds: float) -> str:
     millis = int((seconds_remainder - secs) * 1000)
     return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
 
+@app.get("")
 @app.get("/")
 @app.get("/whisper")
 async def root():
