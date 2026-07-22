@@ -74,8 +74,11 @@ async def health_check():
 
 @app.post("/transcribe", response_class=PlainTextResponse)
 async def transcribe(file: UploadFile = File(...)):
+    global model
     if model is None:
-        raise HTTPException(status_code=503, detail="Whisper model is not available")
+        model = load_model()
+        if model is None:
+            raise HTTPException(status_code=503, detail="Whisper model failed to load")
 
     # Save uploaded file to a temporary location
     try:
