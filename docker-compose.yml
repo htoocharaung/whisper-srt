@@ -19,23 +19,14 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=n8n-stack_default"
       
-      # Routing for HTTP
+      # Router rule for PathPrefix /whisper across all entrypoints
       - "traefik.http.routers.whisper.rule=PathPrefix(`/whisper`)"
-      - "traefik.http.routers.whisper.entrypoints=web" # HTTP
-      # Strip the `/whisper` prefix before forwarding to the container
       - "traefik.http.routers.whisper.middlewares=whisper-strip-prefix"
       
-      # Routing for HTTPS (Optional, if websecure is configured on your Traefik)
-      - "traefik.http.routers.whisper-secure.rule=PathPrefix(`/whisper`)"
-      - "traefik.http.routers.whisper-secure.entrypoints=websecure" # HTTPS
-      - "traefik.http.routers.whisper-secure.tls=true"
-      # If using a self-signed cert on raw IP, you might need this or a default cert in Traefik
-      - "traefik.http.routers.whisper-secure.middlewares=whisper-strip-prefix"
-
-      # The Middleware definition
+      # Middleware definition to strip /whisper prefix before forwarding
       - "traefik.http.middlewares.whisper-strip-prefix.stripprefix.prefixes=/whisper"
       
-      # Point Traefik to the correct internal port
+      # Point Traefik to internal port 8000
       - "traefik.http.services.whisper.loadbalancer.server.port=8000"
       
     healthcheck:
