@@ -30,14 +30,14 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://103.117.150.18/whisper/transcribe",
+        "url": "http://103.117.150.18/whisper/asr?task=transcribe&output=srt",
         "sendBody": true,
         "contentType": "multipart-form-data",
         "bodyParameters": {
           "parameters": [
             {
               "parameterType": "formBinaryData",
-              "name": "file",
+              "name": "audio_file",
               "inputDataFieldName": "data"
             }
           ]
@@ -45,7 +45,7 @@
         "options": {}
       },
       "id": "b0f74572-c2cb-45ec-bc9e-11f8b4edff40",
-      "name": "Transcribe Audio (Whisper API)",
+      "name": "Transcribe Audio (Whisper ASR)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [

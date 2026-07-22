@@ -1,48 +1,50 @@
-# Whisper SRT API
+# Whisper ASR Webservice (Docker + Traefik)
 
-A production-ready Whisper transcription API built with FastAPI and `faster-whisper`, designed to run behind a Traefik reverse proxy on a VPS.
+A production-ready Whisper transcription API built with `ahmetoner/whisper-asr-webservice` (using `faster-whisper`), configured to run behind Traefik on your VPS.
 
 ## Deployment Instructions
 
-1. **Transfer Files**: Ensure this directory (`whisper-srt`) is on your VPS.
-2. **Network Requirement**: Make sure Traefik is running and the `n8n-stack_default` Docker network exists.
-3. **Build & Run**:
+1. **Pull & Run**:
    ```bash
    cd whisper-srt
-   docker-compose up -d --build
+   git pull origin master
+   docker-compose up -d
    ```
-4. **Check Logs**:
+2. **Check Logs**:
    ```bash
    docker-compose logs -f whisper
    ```
-   Wait until you see `Application startup complete` and `Model loaded successfully`.
 
 ## Usage
 
-### Health Check
-
-Verify the API is running and the model is loaded:
-
-```bash
-curl http://<YOUR_VPS_IP>/whisper/health
+### Interactive API Documentation / OpenAPI Docs
+Visit in your browser:
 ```
-*(If you have HTTPS configured through Traefik, change `http://` to `https://`)*
+http://<YOUR_VPS_IP>/whisper/docs
+```
 
-### Transcribe Audio
+### Transcribe Audio to .SRT
 
-Send an audio file via POST request to get a `.srt` file back. Note that the Traefik router `/whisper` automatically strips the prefix and passes `/transcribe` to the container.
+Send an audio file to the `/whisper/asr` endpoint with `task=transcribe` and `output=srt`:
 
 ```bash
 curl -X POST \
-  -F "file=@/path/to/your/audio.mp3" \
-  http://<YOUR_VPS_IP>/whisper/transcribe \
+  -F "audio_file=@/path/to/your/audio.mp3" \
+  "http://<YOUR_VPS_IP>/whisper/asr?task=transcribe&output=srt" \
   -o output.srt
 ```
 
-## How it solves your issues:
-1. **Missing Dependency**: `python-multipart` is included in `requirements.txt`.
-2. **Wrong port mapping**: The API runs on `8000` internally, and Traefik correctly proxies to `8000` via the `loadbalancer.server.port` label. We no longer expose `8023` to the host.
-3. **ISP Port Blocking**: Since Traefik handles the traffic, it will use ports 80/443, avoiding custom port blocks.
-4. **Traefik 404 Intercept**: We added the `traefik.http.middlewares.whisper-strip-prefix.stripprefix.prefixes=/whisper` middleware.
-5. **Network**: The `docker-compose.yml` connects the container to `n8n-stack_default`.
-6. **Certificate Error**: Included entrypoints for `web` (HTTP) and `websecure` (HTTPS) so you can hit it over HTTP raw IP if HTTPS fails.
+### Transcribe Audio to JSON / VTT / TXT
+
+To get JSON instead of SRT:
+```bash
+curl -X POST \
+  -F "audio_file=@audio.mp3" \
+  "http://<YOUR_VPS_IP>/whisper/asr?task=transcribe&output=json"
+```
+
+## How it Solves All Previous VPS Issues:
+1. **Official Image**: Uses pre-built `ahmetoner/whisper-asr-webservice` containing all C++/FFmpeg/python-multipart dependencies.
+2. **No Port Exposure**: Listens internally on port `9000` via Traefik; no custom host ports exposed.
+3. **Traefik Integration**: Strip-prefix middleware routes `/whisper/*` requests cleanly to the webservice.
+4. **Network**: Connected to `n8n-stack_default`.
