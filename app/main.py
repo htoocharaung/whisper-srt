@@ -14,7 +14,7 @@ app = FastAPI(title="Whisper SRT API")
 MODEL_SIZE = os.getenv("WHISPER_MODEL", "base")
 # Use CPU by default for VPS compatibility. Change to "cuda" and compute_type="float16" if GPU is available.
 DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
-COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
+COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "default")
 
 model = None
 model_loading = False

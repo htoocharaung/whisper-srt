@@ -9,7 +9,7 @@ services:
     environment:
       - WHISPER_MODEL=base
       - WHISPER_DEVICE=cpu
-      - WHISPER_COMPUTE_TYPE=int8
+      - WHISPER_COMPUTE_TYPE=default
     # We DO NOT expose ports directly to the host (e.g., ports: - "8023:8000")
     # This ensures no port conflicts and all traffic goes through Traefik.
     # Expose is for internal docker network communication.

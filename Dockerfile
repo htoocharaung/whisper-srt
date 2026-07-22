@@ -28,8 +28,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
 # Pre-download the default whisper model to speed up first boot
-# We run a quick python script to cache the model.
-RUN python -c "from faster_whisper import WhisperModel; WhisperModel('base', device='cpu', compute_type='int8')"
+RUN python -c "from faster_whisper import WhisperModel; WhisperModel('base', device='cpu', compute_type='default')"
 
 # Copy application code
 COPY ./app ./app
