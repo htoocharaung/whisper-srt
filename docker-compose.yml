@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  whisper:
+    build: .
+    container_name: whisper-api
+    restart: unless-stopped
+    # Attach to the n8n-stack_default network where Traefik resides
+    networks:
+      - n8n-stack_default
+    environment:
+      - WHISPER_MODEL=base
+      - WHISPER_DEVICE=cpu
+      - WHISPER_COMPUTE_TYPE=int8
+    # We DO NOT expose ports directly to the host (e.g., ports: - "8023:8000")
+    # This ensures no port conflicts and all traffic goes through Traefik.
+    # Expose is for internal docker network communication.
+    expose:
+      - "8000"
+    labels:
+      - "traefik.enable=true"
+      
+      # Routing for HTTP
+      - "traefik.http.routers.whisper.rule=PathPrefix(`/whisper`)"
+      - "traefik.http.routers.whisper.entrypoints=web" # HTTP
+      # Strip the `/whisper` prefix before forwarding to the container
+      - "traefik.http.routers.whisper.middlewares=whisper-strip-prefix"
+      
+      # Routing for HTTPS (Optional, if websecure is configured on your Traefik)
+      - "traefik.http.routers.whisper-secure.rule=PathPrefix(`/whisper`)"
+      - "traefik.http.routers.whisper-secure.entrypoints=websecure" # HTTPS
+      - "traefik.http.routers.whisper-secure.tls=true"
+      # If using a self-signed cert on raw IP, you might need this or a default cert in Traefik
+      - "traefik.http.routers.whisper-secure.middlewares=whisper-strip-prefix"
+
+      # The Middleware definition
+      - "traefik.http.middlewares.whisper-strip-prefix.stripprefix.prefixes=/whisper"
+      
+      # Point Traefik to the correct internal port
+      - "traefik.http.services.whisper.loadbalancer.server.port=8000"
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Define the external network to connect to
+networks:
+  n8n-stack_default:
+    external: true

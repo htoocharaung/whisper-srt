@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+# Prevent Python from writing pyc files to disc
+ENV PYTHONDONTWRITEBYTECODE 1
+# Prevent Python from buffering stdout and stderr
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /app
+
+# Install system dependencies (ffmpeg is required by faster-whisper)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install them
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Pre-download the default whisper model to speed up first boot
+# We run a quick python script to cache the model.
+RUN python -c "from faster_whisper import WhisperModel; WhisperModel('base', device='cpu', compute_type='int8')"
+
+# Copy application code
+COPY ./app ./app
+
+# Expose port 8000 (Note: This is internal to the docker network)
+EXPOSE 8000
+
+# Run uvicorn
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

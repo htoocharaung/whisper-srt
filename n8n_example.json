@@ -1,0 +1,87 @@
+{
+  "name": "Whisper SRT Transcription Example",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "e6749bd0-f198-4c40-9d0d-b8d4f4f46401",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://example.com/sample-audio.mp3",
+        "responseFormat": "file",
+        "options": {}
+      },
+      "id": "f5de79f3-80b6-4b89-a2a2-85b991a03e1e",
+      "name": "Download Sample Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        440,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://103.117.150.18/whisper/transcribe",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b0f74572-c2cb-45ec-bc9e-11f8b4edff40",
+      "name": "Transcribe Audio (Whisper API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        660,
+        280
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Download Sample Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Sample Audio": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Audio (Whisper API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f7ab0ea2-bb8a-40a2-9cd5-7d8b5ebfc004"
+}
