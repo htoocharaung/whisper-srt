@@ -33,6 +33,22 @@ services:
       timeout: 10s
       retries: 3
 
+  audio-compressor:
+    build: ./compressor
+    container_name: audio-compressor
+    restart: unless-stopped
+    networks:
+      - n8n-stack_default
+    # Expose internally ONLY to Docker network n8n-stack_default
+    # Closed to public internet access (no host ports exposed)
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 # Define the external network to connect to
 networks:
   n8n-stack_default:
